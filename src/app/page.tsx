@@ -7,14 +7,9 @@ import DcfSandbox from '@/components/DcfSandbox';
 import MonteCarlo from '@/components/MonteCarlo';
 import SentimentGrid from '@/components/SentimentGrid';
 import SimulationsComponent from '@/components/Simulations';
-import Timeline from '@/components/Timeline';
 import Memo from '@/components/Memo';
-import KnowledgeGraph from '@/components/KnowledgeGraph';
-import BattleMode from '@/components/BattleMode';
-import ImpactSimulator from '@/components/ImpactSimulator';
-import LeadershipCard from '@/components/LeadershipCard';
 import { GraphState } from '@/lib/agents/types';
-import { Search, Terminal, Database, Clock, RefreshCw, Activity, HeartCrack } from 'lucide-react';
+import { Search, Terminal, Database, Clock, RefreshCw, HeartCrack } from 'lucide-react';
 
 export default function Home() {
   const [ticker, setTicker] = useState('AAPL');
@@ -24,7 +19,7 @@ export default function Home() {
   
   // Dashboard Data State
   const [state, setState] = useState<GraphState | null>(null);
-  const [activeTab, setActiveTab] = useState<'boardroom' | 'dna' | 'scenarios' | 'sentiment' | 'graph' | 'battle' | 'timeline' | 'memo'>('boardroom');
+  const [activeTab, setActiveTab] = useState<'boardroom' | 'dna' | 'scenarios' | 'sentiment' | 'memo'>('boardroom');
   
   // Terminal Logs State
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
@@ -44,8 +39,8 @@ export default function Home() {
 
     setIsSearching(true);
     setErrorMessage(null);
-    setCurrentStep('researchPlanner');
-    setTerminalLogs([`Initializing 13-agent research scope for core ticker [${ticker.toUpperCase()}]...`]);
+    setCurrentStep('research');
+    setTerminalLogs([`Initializing 8-agent research scope for core ticker [${ticker.toUpperCase()}]...`]);
     setState(null);
 
     // Connect to Server Sent Events
@@ -84,16 +79,6 @@ export default function Home() {
                 decision: stepData.decision,
                 confidence: stepData.confidence,
                 memo: stepData.memo,
-                
-                // Advanced fields
-                planner: stepData.planner,
-                hypothesis: stepData.hypothesis,
-                critique: stepData.critique,
-                probForecast: stepData.probForecast,
-                ceo: stepData.ceo,
-                personality: stepData.personality,
-                headlines: stepData.headlines,
-                knowledgeGraph: stepData.knowledgeGraph,
               };
             }
 
@@ -116,22 +101,12 @@ export default function Home() {
               sentimentGrid: stepData.sentimentGrid || prev.sentimentGrid,
               decision: stepData.decision,
               confidence: stepData.confidence,
-              memo: stepData.memo,
-              
-              // Advanced fields
-              planner: stepData.planner || prev.planner,
-              hypothesis: stepData.hypothesis || prev.hypothesis,
-              critique: stepData.critique || prev.critique,
-              probForecast: stepData.probForecast || prev.probForecast,
-              ceo: stepData.ceo || prev.ceo,
-              personality: stepData.personality || prev.personality,
-              headlines: stepData.headlines || prev.headlines,
-              knowledgeGraph: stepData.knowledgeGraph || prev.knowledgeGraph,
+              memo: stepData.memo || prev.memo,
             };
           });
         } else if (payload.type === 'complete') {
           setIsSearching(false);
-          setCurrentStep('reportGenerator');
+          setCurrentStep('committee');
           setTerminalLogs(prev => [...prev, `[SYSTEM] Boardroom debate concluded. Dynamic research compiled.`]);
           eventSource.close();
         } else if (payload.type === 'error') {
@@ -159,7 +134,7 @@ export default function Home() {
       <header style={styles.header} className="no-print">
         <div style={styles.headerLeft}>
           <div style={styles.glowIndicator} />
-          <h1 style={styles.logo}>AI-IROS <span style={styles.logoVersion}>v3.0.0</span></h1>
+          <h1 style={styles.logo}>AI-IROS <span style={styles.logoVersion}>v2.0.0</span></h1>
           <span style={styles.logoDivider}>|</span>
           <span style={styles.logoSubtitle}>QUANT MULTI-AGENT DEBATE ENGINE</span>
         </div>
@@ -286,7 +261,7 @@ export default function Home() {
                 onClick={() => setActiveTab('dna')}
                 style={{ ...styles.tabLink, color: activeTab === 'dna' ? 'var(--cyberspace-blue)' : 'var(--text-secondary)', borderBottomColor: activeTab === 'dna' ? 'var(--cyberspace-blue)' : 'transparent' }}
               >
-                DNA & Leadership
+                DNA & Valuation
               </button>
               <button
                 onClick={() => setActiveTab('scenarios')}
@@ -298,25 +273,7 @@ export default function Home() {
                 onClick={() => setActiveTab('sentiment')}
                 style={{ ...styles.tabLink, color: activeTab === 'sentiment' ? 'var(--cyberspace-blue)' : 'var(--text-secondary)', borderBottomColor: activeTab === 'sentiment' ? 'var(--cyberspace-blue)' : 'transparent' }}
               >
-                Sentiment & Stress-Test
-              </button>
-              <button
-                onClick={() => setActiveTab('graph')}
-                style={{ ...styles.tabLink, color: activeTab === 'graph' ? 'var(--cyberspace-blue)' : 'var(--text-secondary)', borderBottomColor: activeTab === 'graph' ? 'var(--cyberspace-blue)' : 'transparent' }}
-              >
-                Ecosystem Graph
-              </button>
-              <button
-                onClick={() => setActiveTab('battle')}
-                style={{ ...styles.tabLink, color: activeTab === 'battle' ? 'var(--cyberspace-blue)' : 'var(--text-secondary)', borderBottomColor: activeTab === 'battle' ? 'var(--cyberspace-blue)' : 'transparent' }}
-              >
-                Battle Mode
-              </button>
-              <button
-                onClick={() => setActiveTab('timeline')}
-                style={{ ...styles.tabLink, color: activeTab === 'timeline' ? 'var(--cyberspace-blue)' : 'var(--text-secondary)', borderBottomColor: activeTab === 'timeline' ? 'var(--cyberspace-blue)' : 'transparent' }}
-              >
-                Timeline Logs
+                Sentiment Metrics
               </button>
               <button
                 onClick={() => setActiveTab('memo')}
@@ -343,7 +300,7 @@ export default function Home() {
                 !state.dcfValuation || state.dcfValuation.currentPrice === 0 ? (
                   <div style={styles.loadingTab} className="glass-panel">
                     <RefreshCw size={24} className="spin-animate" style={{ color: 'var(--cyberspace-blue)', marginBottom: '12px' }} />
-                    <span style={styles.loadingTabText}>[FINANCIAL ANALYST AGENT] is compiling corporate valuation models...</span>
+                    <span style={styles.loadingTabText}>[FINANCIAL ANALYST] is compiling corporate valuation models...</span>
                   </div>
                 ) : (
                   <div style={styles.dualView}>
@@ -358,11 +315,6 @@ export default function Home() {
                         currentPrice={state.dcfValuation.currentPrice}
                         upside={state.dcfValuation.upside}
                       />
-                      <LeadershipCard
-                        ceo={state.ceo}
-                        personality={state.personality}
-                        headlines={state.headlines}
-                      />
                     </div>
                   </div>
                 )
@@ -372,7 +324,7 @@ export default function Home() {
                 !state.simulations || state.simulations.bull.priceTarget === 0 ? (
                   <div style={styles.loadingTab} className="glass-panel">
                     <RefreshCw size={24} className="spin-animate" style={{ color: 'var(--cyberspace-blue)', marginBottom: '12px' }} />
-                    <span style={styles.loadingTabText}>[FUTURE SCENARIO SIMULATOR AGENT] is executing price paths...</span>
+                    <span style={styles.loadingTabText}>[FUTURE SIMULATION AGENT] is executing price paths...</span>
                   </div>
                 ) : (
                   <div style={styles.dualView}>
@@ -396,87 +348,17 @@ export default function Home() {
                     <span style={styles.loadingTabText}>[NEWS & SENTIMENT ANALYST] is calculating headline vectors...</span>
                   </div>
                 ) : (
-                  <div style={styles.dualView}>
-                    <div style={styles.colHalf}>
-                      <SentimentGrid grid={state.sentimentGrid} />
-                    </div>
-                    <div style={styles.colHalf}>
-                      <ImpactSimulator
-                        currentPrice={state.dcfValuation.currentPrice}
-                        baseUpside={state.dcfValuation.upside}
-                      />
-                    </div>
+                  <div style={styles.singleView}>
+                    <SentimentGrid grid={state.sentimentGrid} />
                   </div>
                 )
-              )}
-
-              {activeTab === 'graph' && (
-                !state.knowledgeGraph || state.knowledgeGraph.nodes.length === 0 ? (
-                  <div style={styles.loadingTab} className="glass-panel">
-                    <RefreshCw size={24} className="spin-animate" style={{ color: 'var(--cyberspace-blue)', marginBottom: '12px' }} />
-                    <span style={styles.loadingTabText}>[HYPOTHESIS TESTING AGENT] is assembling the ecosystem graph...</span>
-                  </div>
-                ) : (
-                  <div style={styles.dualView}>
-                    <div className="glass-panel" style={{ ...styles.colHalf, padding: '24px' }}>
-                      <h3 style={styles.colTitle}>ENTITY RELATIONSHIP KNOWLEDGE GRAPH</h3>
-                      <p style={styles.colSubtitle}>Interactive map auditing structural connections of the corporate core.</p>
-                      <KnowledgeGraph data={state.knowledgeGraph} />
-                    </div>
-                    
-                    {/* Hypothesis Testing Panel */}
-                    <div className="glass-panel flex flex-col gap-4" style={{ ...styles.colHalf, padding: '24px' }}>
-                      <h3 style={styles.colTitle}>HYPOTHESIS TESTING SUMMARY</h3>
-                      <div style={styles.hypoBox}>
-                        <span style={styles.hypoLabel}>CORE STATEMENT</span>
-                        <p style={styles.hypoText}>"{state.hypothesis.statement}"</p>
-                      </div>
-                      <div style={styles.hypoSplit}>
-                        <div>
-                          <span style={{ ...styles.hypoLabel, color: 'var(--terminal-green)' }}>SUPPORTING EVIDENCE</span>
-                          <ul style={styles.hypoList}>
-                            {state.hypothesis.evidence.map((ev, eIdx) => (
-                              <li key={eIdx}>{ev}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <span style={{ ...styles.hypoLabel, color: 'var(--alert-red)' }}>COUNTER EVIDENCE</span>
-                          <ul style={styles.hypoList}>
-                            {state.hypothesis.counters.map((cnt, cIdx) => (
-                              <li key={cIdx}>{cnt}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      {state.critique && (
-                        <div style={styles.critiqueBox}>
-                          <span style={styles.critiqueLabel}>DEVIL'S ADVOCATE CRITIQUE LOOP</span>
-                          <p style={styles.critiqueText}>"{state.critique}"</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              )}
-
-              {activeTab === 'battle' && (
-                <div style={styles.singleView}>
-                  <BattleMode />
-                </div>
-              )}
-
-              {activeTab === 'timeline' && (
-                <div style={styles.singleView}>
-                  <Timeline logs={state.logs} sources={state.sources} />
-                </div>
               )}
 
               {activeTab === 'memo' && (
                 !state.memo ? (
                   <div style={styles.loadingTab} className="glass-panel">
                     <RefreshCw size={24} className="spin-animate" style={{ color: 'var(--cyberspace-blue)', marginBottom: '12px' }} />
-                    <span style={styles.loadingTabText}>[REPORT GENERATOR AGENT] is compiling the institutional memo...</span>
+                    <span style={styles.loadingTabText}>[INVESTMENT COMMITTEE] is compiling the institutional memo...</span>
                   </div>
                 ) : (
                   <div style={styles.singleView}>
@@ -492,7 +374,7 @@ export default function Home() {
             <Terminal size={40} color="var(--cyberspace-blue)" style={{ marginBottom: '16px' }} />
             <h2 style={styles.welcomeTitle}>ENTERPRISES AGENT MATRIX</h2>
             <p style={styles.welcomeDesc}>
-              Initialize the AI Investment Research Operating System by providing a stock ticker. The 13-agent boardroom will execute a LangGraph analysis state-cycle and compile an institutional investment memo.
+              Initialize the AI Investment Research Operating System by providing a stock ticker. The 8-agent boardroom will execute a LangGraph analysis state-cycle and compile an institutional investment memo.
             </p>
           </div>
         )}
@@ -500,448 +382,347 @@ export default function Home() {
         {/* Real-time Streaming Logs Marquee console */}
         <section style={styles.consolePanel} className="glass-panel no-print">
           <div style={styles.consoleHeader}>
-            <span style={styles.consoleTitle}>REALTIME SYSTEM DEBATE DECRYPTION CONSOLE</span>
-            <div style={styles.blinkingRecord} />
+            <div style={styles.consoleTitle}>
+              <Terminal size={14} style={{ marginRight: '6px' }} />
+              <span>DECRYPTION STREAMING LOGS</span>
+            </div>
+            <div style={styles.pulseContainer}>
+              <span className="pulse-dot" />
+              <span style={styles.pulseText}>DECRYPTION_CORE_ACTIVE</span>
+            </div>
           </div>
-          <div style={styles.consoleLogs}>
+          <div style={styles.consoleLogs} id="console-logs-container">
             {terminalLogs.map((log, idx) => (
-              <div key={idx} style={styles.consoleLine}>
-                <span style={styles.consoleTimestamp}>[{new Date().toISOString().slice(11, 19)}]</span>
-                <span style={styles.consoleText}>{log}</span>
+              <div key={idx} style={styles.logLine}>
+                <span style={styles.logTimestamp}>[{new Date().toLocaleTimeString()}]</span>
+                <span style={styles.logText}>{log}</span>
               </div>
             ))}
-            {terminalLogs.length === 0 && (
-              <div style={styles.consoleLineMuted}>System idle. Input stock symbol to handshake logs...</div>
+            {isSearching && (
+              <div style={styles.logLine}>
+                <span style={styles.logTimestamp}>[{new Date().toLocaleTimeString()}]</span>
+                <span style={{ ...styles.logText, color: 'var(--cyberspace-blue)' }}>
+                  <RefreshCw size={10} className="spin-animate" style={{ display: 'inline-block', marginRight: '6px' }} />
+                  Node [{currentStep.toUpperCase()}] executing analytical sweeps...
+                </span>
+              </div>
+            )}
+            {terminalLogs.length === 0 && !isSearching && (
+              <div style={styles.logLineEmpty}>
+                &gt; SYSTEM STANDBY. AWAITING TICKER INITIATION PROTOCOL...
+              </div>
             )}
           </div>
         </section>
       </main>
-
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .spin-animate {
-          animation: spin 1s linear infinite;
-        }
-        @keyframes flash {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-        .flash-animate {
-          animation: flash 1.5s infinite;
-        }
-        @keyframes dotFlashing {
-          0% { background-color: var(--cyberspace-blue); }
-          50%, 100% { background-color: rgba(0, 229, 255, 0.2); }
-        }
-      `}</style>
     </div>
   );
 }
 
+// Obsidian Bloomberg stylesheet
 const styles = {
   appContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column' as const,
     position: 'relative' as const,
-    zIndex: 1,
+    backgroundColor: 'var(--bg-obsidian)',
+    color: 'var(--text-primary)',
+    fontFamily: "'Inter', 'Outfit', sans-serif"
   },
   header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px 24px',
-    backgroundColor: '#05070a',
+    height: '52px',
+    backgroundColor: 'var(--bg-dark-gray)',
     borderBottom: '1px solid var(--border-solid)',
-    fontFamily: 'var(--font-mono)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 24px',
+    zIndex: 10
   },
   headerLeft: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
+    alignItems: 'center'
   },
   glowIndicator: {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: 'var(--terminal-green)',
-    boxShadow: '0 0 8px var(--terminal-green)',
+    backgroundColor: 'var(--cyberspace-blue)',
+    marginRight: '12px',
+    boxShadow: '0 0 10px var(--cyberspace-blue)'
   },
   logo: {
-    fontSize: '14px',
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    color: 'var(--text-primary)',
+    fontSize: '15px',
+    fontWeight: '700',
+    letterSpacing: '1px',
+    color: 'var(--text-primary)'
   },
   logoVersion: {
     fontSize: '9px',
-    color: 'var(--text-muted)',
+    color: 'var(--cyberspace-blue)',
+    verticalAlign: 'super',
+    marginLeft: '2px'
   },
   logoDivider: {
-    color: 'var(--text-muted)',
+    color: 'var(--border-solid)',
+    margin: '0 12px',
+    fontSize: '14px'
   },
   logoSubtitle: {
     fontSize: '10px',
+    fontWeight: '500',
     color: 'var(--text-secondary)',
-    letterSpacing: '0.05em',
+    letterSpacing: '1.5px'
   },
   headerRight: {
     display: 'flex',
-    gap: '20px',
+    alignItems: 'center',
+    gap: '20px'
   },
   metaItem: {
     display: 'flex',
     alignItems: 'center',
-    fontSize: '10px',
-    color: 'var(--text-secondary)',
-    letterSpacing: '0.02em',
+    fontSize: '11px',
+    color: 'var(--text-secondary)'
   },
   mainContent: {
     flex: 1,
     padding: '24px',
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '20px',
-    maxWidth: '1200px',
-    width: '100%',
+    gap: '24px',
+    maxWidth: '1440px',
     margin: '0 auto',
+    width: '100%'
   },
   searchPanel: {
-    padding: '16px 24px',
+    padding: '16px 20px',
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: '24px',
+    justifyContent: 'space-between',
     flexWrap: 'wrap' as const,
+    gap: '16px'
   },
   form: {
     display: 'flex',
     flex: 1,
     gap: '12px',
-    minWidth: '280px',
+    minWidth: '300px'
   },
   inputContainer: {
     display: 'flex',
     alignItems: 'center',
     flex: 1,
-    backgroundColor: 'rgba(5, 7, 10, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     border: '1px solid var(--border-solid)',
     borderRadius: '4px',
-    outline: 'none',
-    transition: 'border var(--transition-fast)',
+    transition: 'border-color 0.2s'
   },
   searchInput: {
-    width: '100%',
-    background: 'none',
+    flex: 1,
+    height: '38px',
+    backgroundColor: 'transparent',
     border: 'none',
     outline: 'none',
-    padding: '10px 12px',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-mono)',
     fontSize: '12px',
-    letterSpacing: '0.05em',
+    color: 'var(--text-primary)',
+    padding: '0 12px',
+    letterSpacing: '0.5px'
   },
   searchBtn: {
-    display: 'inline-flex',
+    padding: '0 24px',
+    height: '40px',
+    border: '1px solid transparent',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontWeight: '600',
+    letterSpacing: '0.5px',
+    cursor: 'pointer',
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0 20px',
-    borderRadius: '4px',
-    fontSize: '11px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    border: '1px solid transparent',
-    letterSpacing: '0.05em',
-    fontFamily: 'var(--font-mono)',
-    transition: 'all var(--transition-fast)',
-    outline: 'none',
+    transition: 'all 0.2s'
   },
   quickPrompts: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '8px'
   },
   quickLabel: {
-    fontSize: '9px',
-    color: 'var(--text-muted)',
-    fontWeight: 700,
-    fontFamily: 'var(--font-mono)',
+    fontSize: '11px',
+    fontWeight: '600',
+    color: 'var(--text-secondary)',
+    letterSpacing: '0.5px',
+    marginRight: '4px'
   },
   quickBtn: {
-    background: 'rgba(5, 7, 10, 0.3)',
-    border: '1px solid',
+    height: '28px',
+    padding: '0 12px',
+    backgroundColor: 'transparent',
+    border: '1px solid var(--border-solid)',
     borderRadius: '4px',
-    padding: '4px 8px',
-    fontSize: '10px',
+    fontSize: '11px',
+    fontWeight: '500',
     cursor: 'pointer',
-    fontFamily: 'var(--font-mono)',
-    transition: 'all var(--transition-fast)',
-    outline: 'none',
+    transition: 'all 0.2s'
   },
   errorAlert: {
-    display: 'flex',
-    alignItems: 'center',
     padding: '12px 18px',
     color: 'var(--alert-red)',
-    fontSize: '13px',
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '12px'
   },
   emptyWelcome: {
+    padding: '64px 24px',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
+    justifyContent: 'center',
     textAlign: 'center' as const,
-    padding: '60px 40px',
-    gap: '12px',
-    maxWidth: '650px',
-    margin: '40px auto 0 auto',
+    minHeight: '320px'
   },
   welcomeTitle: {
     fontSize: '16px',
-    letterSpacing: '0.1em',
-    fontFamily: 'var(--font-mono)',
+    fontWeight: '700',
+    letterSpacing: '2px',
     color: 'var(--text-primary)',
+    marginBottom: '12px'
   },
   welcomeDesc: {
-    fontSize: '13px',
+    fontSize: '12px',
     color: 'var(--text-secondary)',
-    lineHeight: 1.6,
+    maxWidth: '520px',
+    lineHeight: '1.8'
   },
   dashboardLayout: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '16px',
+    gap: '20px'
   },
   dataStrip: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    padding: '16px 24px',
-    gap: '16px',
+    gap: '24px',
+    padding: '16px 24px'
   },
   stripLabel: {
     fontSize: '9px',
+    fontWeight: '600',
     color: 'var(--text-secondary)',
-    letterSpacing: '0.05em',
-    fontFamily: 'var(--font-mono)',
+    letterSpacing: '1px',
+    textTransform: 'uppercase' as const,
     display: 'block',
-    marginBottom: '4px',
+    marginBottom: '4px'
   },
   stripValue: {
     fontSize: '18px',
-    fontWeight: 700,
-    fontFamily: 'var(--font-mono)',
+    fontWeight: '700',
+    letterSpacing: '0.5px',
+    color: 'var(--text-primary)'
   },
   tabsContainer: {
     display: 'flex',
     borderBottom: '1px solid var(--border-solid)',
-    gap: '8px',
-    overflowX: 'auto' as const,
+    gap: '28px',
+    padding: '0 4px'
   },
   tabLink: {
-    background: 'none',
+    padding: '12px 0 10px 0',
+    backgroundColor: 'transparent',
     border: 'none',
     borderBottom: '2px solid transparent',
-    padding: '10px 16px',
-    fontSize: '12px',
-    fontWeight: 600,
+    fontSize: '13px',
+    fontWeight: '600',
     cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
-    fontFamily: 'var(--font-sans)',
-    whiteSpace: 'nowrap' as const,
-    outline: 'none',
+    transition: 'all 0.2s'
   },
   viewPort: {
-    minHeight: '400px',
+    minHeight: '420px'
   },
   singleView: {
-    width: '100%',
+    width: '100%'
   },
   dualView: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-    gap: '16px',
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '24px'
   },
   colHalf: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '12px',
-    borderRadius: '8px',
+    flex: 1,
+    minWidth: '320px'
   },
   colTitle: {
-    fontSize: '13px',
-    letterSpacing: '0.05em',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-mono)',
-    marginBottom: '6px',
-  },
-  colSubtitle: {
     fontSize: '12px',
-    color: 'var(--text-secondary)',
-    lineHeight: 1.4,
-    marginBottom: '10px',
+    fontWeight: '700',
+    letterSpacing: '1px',
+    color: 'var(--text-primary)',
+    marginBottom: '16px'
   },
-  peersList: {
+  loadingTab: {
+    height: '320px',
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '10px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center' as const
   },
-  peerCard: {
-    background: 'rgba(5, 7, 10, 0.4)',
-    border: '1px solid var(--border-solid)',
-    borderRadius: '6px',
-    padding: '12px',
-  },
-  peerHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: '10px',
-    borderBottom: '1px solid rgba(255,255,255,0.03)',
-    paddingBottom: '6px',
-  },
-  peerName: {
+  loadingTabText: {
     fontSize: '12px',
-    color: 'var(--text-primary)',
-  },
-  peerTicker: {
-    fontSize: '10px',
-    fontFamily: 'var(--font-mono)',
-    color: 'var(--cyberspace-blue)',
-    fontWeight: 700,
-  },
-  peerStats: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  peerLabel: {
-    fontSize: '9px',
-    color: 'var(--text-muted)',
-    display: 'block',
-  },
-  peerVal: {
-    fontSize: '11px',
-    fontFamily: 'var(--font-mono)',
     color: 'var(--text-secondary)',
-    fontWeight: 700,
+    letterSpacing: '0.5px'
   },
   consolePanel: {
-    background: 'rgba(5, 7, 10, 0.8)',
-    border: '1px solid var(--border-solid)',
-    fontFamily: 'var(--font-mono)',
-    borderRadius: '6px',
+    padding: '14px 18px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '12px'
   },
   consoleHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '8px 16px',
-    backgroundColor: '#07090e',
     borderBottom: '1px solid var(--border-solid)',
+    paddingBottom: '8px'
   },
   consoleTitle: {
-    fontSize: '9px',
-    color: 'var(--text-muted)',
-    letterSpacing: '0.05em',
-    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '10px',
+    fontWeight: '700',
+    color: 'var(--text-primary)',
+    letterSpacing: '1px'
   },
-  blinkingRecord: {
-    width: '6px',
-    height: '6px',
-    borderRadius: '50%',
-    backgroundColor: 'var(--alert-red)',
-    boxShadow: '0 0 6px var(--alert-red)',
-    animation: 'flash 1.5s infinite',
+  pulseContainer: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  pulseText: {
+    fontSize: '9px',
+    color: 'var(--text-secondary)',
+    fontWeight: '600',
+    letterSpacing: '0.5px'
   },
   consoleLogs: {
-    padding: '12px 16px',
-    height: '110px',
-    overflowY: 'auto' as const,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '6px',
-  },
-  consoleLine: {
-    fontSize: '10px',
+    fontFamily: 'monospace',
+    fontSize: '11px',
     color: 'var(--terminal-green)',
-    lineHeight: 1.4,
+    lineHeight: '1.7',
+    maxHeight: '150px',
+    overflowY: 'auto' as const,
+    padding: '4px 0'
   },
-  consoleTimestamp: {
-    color: 'var(--text-muted)',
-    marginRight: '8px',
-  },
-  consoleText: {
-    wordBreak: 'break-all' as const,
-  },
-  consoleLineMuted: {
-    fontSize: '10px',
-    color: 'var(--text-muted)',
-    fontStyle: 'italic',
-  },
-  hypoBox: {
-    background: 'rgba(5, 7, 10, 0.3)',
-    border: '1px solid var(--border-solid)',
-    borderRadius: '4px',
-    padding: '10px 14px',
-  },
-  hypoLabel: {
-    fontSize: '8px',
-    color: 'var(--text-muted)',
-    letterSpacing: '0.05em',
-    fontFamily: 'var(--font-mono)',
-    display: 'block',
+  logLine: {
     marginBottom: '4px',
+    wordBreak: 'break-all' as const
   },
-  hypoText: {
-    fontSize: '11px',
-    color: 'var(--text-primary)',
-    fontStyle: 'italic',
-  },
-  hypoSplit: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '14px',
-  },
-  hypoList: {
-    fontSize: '10px',
+  logTimestamp: {
     color: 'var(--text-secondary)',
-    lineHeight: 1.4,
-    paddingLeft: '14px',
-    listStyleType: 'circle',
+    marginRight: '8px'
   },
-  critiqueBox: {
-    background: 'rgba(255, 74, 74, 0.03)',
-    border: '1px solid rgba(255, 74, 74, 0.2)',
-    borderRadius: '4px',
-    padding: '10px 14px',
-    marginTop: '6px',
+  logText: {
+    color: 'var(--terminal-green)'
   },
-  critiqueLabel: {
-    fontSize: '8px',
-    color: 'var(--alert-red)',
-    letterSpacing: '0.05em',
-    fontFamily: 'var(--font-mono)',
-    display: 'block',
-    marginBottom: '4px',
-    fontWeight: 700,
-  },
-  critiqueText: {
-    fontSize: '10px',
-    color: 'var(--text-secondary)',
-    fontStyle: 'italic',
-  },
-  loadingTab: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 40px',
-    minHeight: '300px',
-  },
-  loadingTabText: {
-    fontSize: '11px',
-    color: 'var(--text-secondary)',
-    fontFamily: 'var(--font-mono)',
-    letterSpacing: '0.02em',
+  logLineEmpty: {
+    color: 'var(--text-muted)',
+    fontStyle: 'italic'
   }
 };

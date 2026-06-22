@@ -1,6 +1,6 @@
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { GraphState, AgentMessage } from './types';
-import { getCompanyMockData, AGENT_SYSTEM_PROMPTS } from './prompts';
+import { getCompanyMockData } from './prompts';
 
 // Define the Graph state shape
 const GraphStateAnnotation = {
@@ -69,74 +69,24 @@ const GraphStateAnnotation = {
     value: (x: string, y: string) => y,
     default: () => '',
   },
-  
-  // Advanced Intelligence Fields
-  planner: {
-    value: (x: any, y: any) => y,
-    default: () => ({ scope: '', queries: [], prioritySources: [] }),
-  },
-  hypothesis: {
-    value: (x: any, y: any) => y,
-    default: () => ({ statement: '', confidence: 50, evidence: [], counters: [] }),
-  },
-  critique: {
-    value: (x: string, y: string) => y,
-    default: () => '',
-  },
-  probForecast: {
-    value: (x: any, y: any) => y,
-    default: () => ({ year1: 50, year3: 50, year5: 50 }),
-  },
-  ceo: {
-    value: (x: any, y: any) => y,
-    default: () => ({ name: '', vision: 50, execution: 50, leadership: 50 }),
-  },
-  personality: {
-    value: (x: string, y: string) => y,
-    default: () => 'Visionary Innovator' as const,
-  },
-  headlines: {
-    value: (x: any, y: any) => y,
-    default: () => ({ bull: '', bear: '', blackSwan: '' }),
-  },
-  knowledgeGraph: {
-    value: (x: any, y: any) => y,
-    default: () => ({ nodes: [], links: [] }),
-  },
 };
 
-// Node function map for direct execution in research runtime (13 Agents)
+// Node function map for direct execution in research runtime (8 Agents)
 const nodeFunctions: Record<string, (state: any) => Promise<any>> = {
-  researchPlanner: async (state) => {
-    const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Research Planner Agent');
-    return {
-      currentStep: 'researchPlanner',
-      planner: {
-        scope: `Deep fundamental and macro sweep for ${state.ticker}.`,
-        queries: [`${state.ticker} financial filings`, `${state.ticker} market share competitors`],
-        prioritySources: ['SEC Edgar', 'BSE India', 'Bloomberg Peer Index']
-      },
-      logs: [`Research Planner Agent: mapped dynamic research scope for ${state.ticker}.`],
-      debate: msg ? [msg] : [],
-    };
-  },
   research: async (state) => {
     const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Company Research Agent');
+    const msg = mock.debate?.find(m => m.agent === 'Research Agent');
     return {
       currentStep: 'research',
       companyName: mock.companyName,
-      personality: mock.personality,
-      knowledgeGraph: mock.knowledgeGraph,
-      logs: ['Company Research Agent: overview fetched; profile compiled.', 'Handshaking with SEC EDGAR...', 'Extracted 10-K metadata.'],
+      logs: ['Research Agent: overview fetched; profile compiled.', 'Handshaking with SEC EDGAR...', 'Extracted 10-K metadata.'],
       debate: msg ? [msg] : [],
       sources: mock.sources,
     };
   },
   financial: async (state) => {
     const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Financial Analyst Agent');
+    const msg = mock.debate?.find(m => m.agent === 'Financial Analyst');
     return {
       currentStep: 'financial',
       dcfValuation: mock.dcfValuation,
@@ -145,23 +95,23 @@ const nodeFunctions: Record<string, (state: any) => Promise<any>> = {
         stability: mock.dnaScores?.stability || 50,
         growth: mock.dnaScores?.growth || 50,
       },
-      logs: ['Financial Analyst Agent: DCF schedules built; valuation multiples verified.', 'Running discount cash schedules.', 'Verifying debt ratios.'],
+      logs: ['Financial Analyst: DCF schedules built; valuation multiples verified.', 'Running discount cash schedules.', 'Verifying debt ratios.'],
       debate: msg ? [msg] : [],
     };
   },
   news: async (state) => {
     const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'News Intelligence Agent');
+    const msg = mock.debate?.find(m => m.agent === 'News & Sentiment Analyst');
     return {
       currentStep: 'news',
       sentimentGrid: mock.sentimentGrid,
-      logs: ['News Intelligence Agent: public headlines and PR sentiment calculated.', 'Aggregating headlines.', 'Running NLP vector calculations.'],
+      logs: ['News & Sentiment Analyst: public headlines and PR sentiment calculated.', 'Aggregating headlines.', 'Running NLP vector calculations.'],
       debate: msg ? [msg] : [],
     };
   },
   competitor: async (state) => {
     const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Competitor Intelligence Agent');
+    const msg = mock.debate?.find(m => m.agent === 'Competitor Analyst');
     return {
       currentStep: 'competitor',
       peers: mock.peers,
@@ -169,7 +119,7 @@ const nodeFunctions: Record<string, (state: any) => Promise<any>> = {
         ...state.dnaScores,
         moat: mock.dnaScores?.moat || 50,
       },
-      logs: ['Competitor Intelligence Agent: benchmarked key operating ratios vs peers.', 'Mapping switching costs.', 'Comparing sector operating margins.'],
+      logs: ['Competitor Analyst: benchmarked key operating ratios vs peers.', 'Mapping switching costs.', 'Comparing sector operating margins.'],
       debate: msg ? [msg] : [],
     };
   },
@@ -186,65 +136,22 @@ const nodeFunctions: Record<string, (state: any) => Promise<any>> = {
       debate: msg ? [msg] : [],
     };
   },
-  hiddenAlpha: async (state) => {
-    const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Hidden Alpha Agent');
-    return {
-      currentStep: 'hiddenAlpha',
-      alphaSignals: mock.alphaSignals,
-      ceo: mock.ceo,
-      headlines: mock.headlines,
-      dnaScores: {
-        ...state.dnaScores,
-        leadership: mock.dnaScores?.leadership || 50,
-        innovation: mock.dnaScores?.innovation || 50,
-      },
-      logs: ['Hidden Alpha Agent: mapped hiring listings and patent database records.', 'Fetched CEO leadership scores.'],
-      debate: msg ? [msg] : [],
-    };
-  },
-  hypothesisTesting: async (state) => {
-    const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Hypothesis Testing Agent');
-    return {
-      currentStep: 'hypothesisTesting',
-      hypothesis: {
-        statement: `Growth for ${state.ticker} is sustained by software licensing expansion and ecosystem locking.`,
-        confidence: 82,
-        evidence: [`45% increase in specialist hiring listings`, `18 patents granted on neural model weight compression`],
-        counters: [`Geopolitical assembly delays`, `Antitrust inquiries opening on app ecosystems`]
-      },
-      logs: ['Hypothesis Testing Agent: core investment thesis tested; evidence verified.'],
-      debate: msg ? [msg] : [],
-    };
-  },
   devilsAdvocate: async (state) => {
     const mock = getCompanyMockData(state.ticker);
     const msg = mock.debate?.find(m => m.agent === "Devil's Advocate Agent");
     return {
       currentStep: 'devilsAdvocate',
-      critique: 'Valuation multiples assume ideal pricing elasticity. Multiple compression of 30% occurs if growth targets miss by 150bps.',
       logs: ["Devil's Advocate Agent: pushed back on consensus; tested bear cases.", 'Skeptically reviewing multiple distributions.'],
-      debate: msg ? [msg] : [],
-    };
-  },
-  verification: async (state) => {
-    const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Verification Agent');
-    return {
-      currentStep: 'verification',
-      logs: ['Verification Agent: verified SEC filing and registry documents.', 'Factual claims checked.'],
       debate: msg ? [msg] : [],
     };
   },
   futureSim: async (state) => {
     const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Future Scenario Simulator Agent');
+    const msg = mock.debate?.find(m => m.agent === 'Future Simulation Agent');
     return {
       currentStep: 'futureSim',
       simulations: mock.simulations,
-      probForecast: mock.probForecast,
-      logs: ['Future Scenario Simulator Agent: mapped Bull, Bear, and Black Swan probability targets.', 'Executing 10,000 Monte Carlo price paths.'],
+      logs: ['Future Simulation Agent: mapped Bull, Bear, and Black Swan probability targets.', 'Executing Monte Carlo price paths.'],
       debate: msg ? [msg] : [],
     };
   },
@@ -255,17 +162,8 @@ const nodeFunctions: Record<string, (state: any) => Promise<any>> = {
       currentStep: 'committee',
       decision: mock.decision,
       confidence: mock.confidence,
-      logs: ['Investment Committee Agent: boardroom vote tally finalized.', 'Completed Investment Committee ballot.'],
-      debate: msg ? [msg] : [],
-    };
-  },
-  reportGenerator: async (state) => {
-    const mock = getCompanyMockData(state.ticker);
-    const msg = mock.debate?.find(m => m.agent === 'Report Generator Agent');
-    return {
-      currentStep: 'reportGenerator',
       memo: mock.memo,
-      logs: ['Report Generator Agent: institutional investment memo compiled.', 'Compilation complete.'],
+      logs: ['Investment Committee Agent: boardroom vote tally finalized.', 'Completed Investment Committee ballot.', 'Institutional memo compiled.'],
       debate: msg ? [msg] : [],
     };
   }
@@ -276,36 +174,26 @@ const workflow = new StateGraph<GraphState>({
   channels: GraphStateAnnotation as any
 });
 
-// Implement 13 agent nodes in workflow
-workflow.addNode('researchPlanner', nodeFunctions.researchPlanner);
+// Implement 8 agent nodes in workflow
 workflow.addNode('research', nodeFunctions.research);
 workflow.addNode('financial', nodeFunctions.financial);
 workflow.addNode('news', nodeFunctions.news);
 workflow.addNode('competitor', nodeFunctions.competitor);
 workflow.addNode('risk', nodeFunctions.risk);
-workflow.addNode('hiddenAlpha', nodeFunctions.hiddenAlpha);
-workflow.addNode('hypothesisTesting', nodeFunctions.hypothesisTesting);
-workflow.addNode('devilsAdvocate', nodeFunctions.devilsAdvocate);
-workflow.addNode('verification', nodeFunctions.verification);
 workflow.addNode('futureSim', nodeFunctions.futureSim);
+workflow.addNode('devilsAdvocate', nodeFunctions.devilsAdvocate);
 workflow.addNode('committee', nodeFunctions.committee);
-workflow.addNode('reportGenerator', nodeFunctions.reportGenerator);
 
-// Connect 13 nodes
-workflow.addEdge(START as any, 'researchPlanner' as any);
-workflow.addEdge('researchPlanner' as any, 'research' as any);
+// Connect 8 nodes
+workflow.addEdge(START as any, 'research' as any);
 workflow.addEdge('research' as any, 'financial' as any);
 workflow.addEdge('financial' as any, 'news' as any);
 workflow.addEdge('news' as any, 'competitor' as any);
 workflow.addEdge('competitor' as any, 'risk' as any);
-workflow.addEdge('risk' as any, 'hiddenAlpha' as any);
-workflow.addEdge('hiddenAlpha' as any, 'hypothesisTesting' as any);
-workflow.addEdge('hypothesisTesting' as any, 'devilsAdvocate' as any);
-workflow.addEdge('devilsAdvocate' as any, 'verification' as any);
-workflow.addEdge('verification' as any, 'futureSim' as any);
-workflow.addEdge('futureSim' as any, 'committee' as any);
-workflow.addEdge('committee' as any, 'reportGenerator' as any);
-workflow.addEdge('reportGenerator' as any, END as any);
+workflow.addEdge('risk' as any, 'futureSim' as any);
+workflow.addEdge('futureSim' as any, 'devilsAdvocate' as any);
+workflow.addEdge('devilsAdvocate' as any, 'committee' as any);
+workflow.addEdge('committee' as any, END as any);
 
 // Compile the graph
 export const researchGraph = workflow.compile();
@@ -315,12 +203,11 @@ export const researchGraph = workflow.compile();
  */
 export async function executeResearch(ticker: string, emitter: (event: any) => void) {
   try {
-    emitter({ type: 'start', message: `Initializing 13-agent intelligence sweep for ${ticker}...` });
+    emitter({ type: 'start', message: `Initializing 8-agent intelligence sweep for ${ticker}...` });
     
     const stepOutputs: string[] = [
-      'researchPlanner', 'research', 'financial', 'news', 'competitor', 
-      'risk', 'hiddenAlpha', 'hypothesisTesting', 'devilsAdvocate', 
-      'verification', 'futureSim', 'committee', 'reportGenerator'
+      'research', 'financial', 'news', 'competitor', 
+      'risk', 'futureSim', 'devilsAdvocate', 'committee'
     ];
     
     let currentState: any = { ticker };
@@ -362,16 +249,6 @@ export async function executeResearch(ticker: string, emitter: (event: any) => v
           decision: currentState.decision,
           confidence: currentState.confidence,
           memo: currentState.memo,
-          
-          // Upgraded fields
-          planner: currentState.planner,
-          hypothesis: currentState.hypothesis,
-          critique: currentState.critique,
-          probForecast: currentState.probForecast,
-          ceo: currentState.ceo,
-          personality: currentState.personality,
-          headlines: currentState.headlines,
-          knowledgeGraph: currentState.knowledgeGraph,
         }
       });
     }

@@ -60,37 +60,6 @@ export interface SentimentMetric {
   signalStrength: number;
 }
 
-export interface CEOIntelligence {
-  name: string;
-  vision: number;      // 0-100
-  execution: number;   // 0-100
-  leadership: number;  // 0-100
-}
-
-export interface FutureHeadlines {
-  bull: string;
-  bear: string;
-  blackSwan: string;
-}
-
-export interface KnowledgeNode {
-  id: string;
-  label: string;
-  group: 'company' | 'executive' | 'competitor' | 'industry' | 'supplier' | 'risk' | 'product' | 'partnership';
-  details: string;
-}
-
-export interface KnowledgeLink {
-  source: string;
-  target: string;
-  relation: string;
-}
-
-export interface KnowledgeGraphData {
-  nodes: KnowledgeNode[];
-  links: KnowledgeLink[];
-}
-
 export interface GraphState {
   ticker: string;
   companyName: string;
@@ -111,27 +80,4 @@ export interface GraphState {
   decision: 'INVEST' | 'HOLD' | 'PASS';
   confidence: number;
   memo: string;
-  
-  // Advanced Intelligence Fields
-  planner: {
-    scope: string;
-    queries: string[];
-    prioritySources: string[];
-  };
-  hypothesis: {
-    statement: string;
-    confidence: number;
-    evidence: string[];
-    counters: string[];
-  };
-  critique: string; // Self-critique revisions
-  probForecast: {
-    year1: number; // probability of outperformance %
-    year3: number;
-    year5: number;
-  };
-  ceo: CEOIntelligence;
-  personality: 'Visionary Innovator' | 'Stable Compounder' | 'High-Risk Disruptor' | 'Fading Leader';
-  headlines: FutureHeadlines;
-  knowledgeGraph: KnowledgeGraphData;
 }
